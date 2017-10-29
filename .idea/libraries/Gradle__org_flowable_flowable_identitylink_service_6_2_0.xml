@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-identitylink-service:6.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-identitylink-service/6.2.0/5a3762016e0a5592964e31477cb6bf09cf04051d/flowable-identitylink-service-6.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-identitylink-service/6.2.0/86c7d3f7204c4a2b902c7756f0acf9fe555d5c60/flowable-identitylink-service-6.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

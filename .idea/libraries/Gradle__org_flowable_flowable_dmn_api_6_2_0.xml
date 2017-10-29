@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-dmn-api:6.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-dmn-api/6.2.0/d1bfca7bfdf1e00a37d44eb91f7c2c8f11acc40e/flowable-dmn-api-6.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-dmn-api/6.2.0/888edc6aaa414717a2be385d4d2b24b3641ab36c/flowable-dmn-api-6.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

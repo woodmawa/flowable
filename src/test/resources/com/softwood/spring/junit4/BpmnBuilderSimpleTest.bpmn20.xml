@@ -1,0 +1,16 @@
+<definitions id="d_1"
+             targetNamespace="http://flowable.org/bpmn20"
+             xmlns:flowable="http://flowable.org/bpmn"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
+
+    <process id="p_1" name="basic startend process">
+
+        <startEvent id="theStart" />
+
+        <sequenceFlow id="flow1" sourceRef="theStart" targetRef="theEnd" />
+
+        <endEvent id="theEnd" />
+
+    </process>
+
+</definitions>

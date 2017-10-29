@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-task-service-api:6.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-task-service-api/6.2.0/e033fce0cc5cb998d6f786030da768a218c56c38/flowable-task-service-api-6.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-task-service-api/6.2.0/9a6f1f59ac9559bd860b6c7a2034dd3b2a8ef602/flowable-task-service-api-6.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

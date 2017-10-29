@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 'simpleProcess' text process to show engine can be loaded and processes queried through API -->
+<!-- @Deployment looks by default for process definition named as 'testClassName.testMethod.bpmn20.xml' in the classpath
+you would typically do this by storing the file in the src/test/resources/<packagePath>/<bpmSpecFile>
+you can override this by providing explicit location to the annotation like
+@Deployment(resources={"<filepath>/<bpmnSpecFile>" [opt: ,"anOther",..] } )
+-->
+
+<definitions id="definitions"
+             xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="Examples">
+
+    <process id="simpleProcess">
+
+        <startEvent id="start"/>
+        <sequenceFlow id="flow1" sourceRef="start" targetRef="theTask"/>
+
+        <userTask id="theTask" name="My Task"/>
+        <sequenceFlow id="flow2" sourceRef="theTask" targetRef="theEnd"/>
+
+        <endEvent id="theEnd"/>
+
+    </process>
+
+</definitions>

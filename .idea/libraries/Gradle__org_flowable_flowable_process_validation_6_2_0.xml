@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-process-validation:6.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-process-validation/6.2.0/a27bd56faae1f75e20d903a4b7d007791e75037b/flowable-process-validation-6.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-process-validation/6.2.0/d2581f6d9103320339521e381a3bca7550101592/flowable-process-validation-6.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

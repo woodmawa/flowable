@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-form-model:6.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-form-model/6.2.0/4d43fa81a5a715e68d31110f93caa7c1e67086db/flowable-form-model-6.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-form-model/6.2.0/d49160a080da15fc69549a8a74c17369677bfefd/flowable-form-model-6.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

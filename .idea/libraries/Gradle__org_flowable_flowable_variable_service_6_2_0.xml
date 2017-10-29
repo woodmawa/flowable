@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-variable-service:6.2.0">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-variable-service/6.2.0/6da58b93565946259b33eb842c54a662c20b92d0/flowable-variable-service-6.2.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-variable-service/6.2.0/3c856b82771c022936dce3016ef84205438cc022/flowable-variable-service-6.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
