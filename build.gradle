@@ -30,10 +30,25 @@ dependencies {
     // https://mvnrepository.com/artifact/com.h2database/h2
     compile group: 'com.h2database', name: 'h2', version: '1.4.196'
 
+    //compile group: 'javax.persistance', name: 'persistance-api', version: '1.0.2'
+
+    // https://mvnrepository.com/artifact/org.apache.openjpa/openjpa
+    compile group: 'org.apache.openjpa', name: 'openjpa', version: '2.4.2'
+
+    // get jpa load time waver support - https://mvnrepository.com/artifact/org.springframework/spring-instrument
+    compile group: 'org.springframework', name: 'spring-instrument', version: '4.3.12.RELEASE'
+    // get hibernate jpa vendor adapter - https://mvnrepository.com/artifact/org.springframework/spring-orm
+    compile group: 'org.springframework', name: 'spring-orm', version: '4.3.12.RELEASE'
+
     //current spring boot
     compile("org.springframework.boot:spring-boot-starter-web:1.5.8.RELEASE")
+    // https://mvnrepository.com/artifact/org.flowable/flowable-spring-boot-starter-jpa
+    compile group: 'org.flowable', name: 'flowable-spring-boot-starter-jpa', version: '6.2.0'
     //now add spring boot support - adds flowable and spring boot transative dependencies
     compile group: 'org.flowable', name: 'flowable-spring-boot-starter-basic', version: '6.2.0'
+    // https://mvnrepository.com/artifact/org.flowable/flowable-groovy-script-static-engine
+    compile group: 'org.flowable', name: 'flowable-groovy-script-static-engine', version: '6.1.2'
+    compile group: 'org.flowable', name: 'flowable-process-validation', version: '6.1.2'
 
 
 

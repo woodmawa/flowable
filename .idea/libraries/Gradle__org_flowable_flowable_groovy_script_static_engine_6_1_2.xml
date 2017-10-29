@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.flowable:flowable-groovy-script-static-engine:6.1.2">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-groovy-script-static-engine/6.1.2/f4b6d19c12ae7c4a883dccb54c2fa0982d01776d/flowable-groovy-script-static-engine-6.1.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.flowable/flowable-groovy-script-static-engine/6.1.2/2993cb0ed5deebe1942fe1951207991782d232f6/flowable-groovy-script-static-engine-6.1.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

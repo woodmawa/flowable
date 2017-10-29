@@ -38,11 +38,11 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
     Map namespaces = [flowable: "http://flowable.org/bpmn",
                         bpmndi: "http://www.omg.org/spec/BPMN/$defaultSpecVersion/DI",
                         dc    : "http://www.omg.org/spec/DD/$defaultSpecVersion/DC",
-                        di    : "http://www.omg.org/spec/$defaultSpecVersion/DI",
+                        di    : "http://www.omg.org/spec/BPMN/$defaultSpecVersion/DI",
                         xsd   : "http://www.w3.org/2001/XMLSchema",
                         xsi   : "http://www.w3.org/2001/XMLSchema-instance"]
     String defaultTypeLanguage = "http://www.w3.org/2001/XMLSchema"
-    String defaultNamespace = "http://www.omg.org.spec/BPMN/$defaultSpecVersion/MODEL"
+    String defaultNamespace = "http://www.omg.org/spec/BPMN/$defaultSpecVersion/MODEL"
     String schemaLocation = "http://www.omg.org/spec/BPMN/20100524/MODEL"
 
     def declareNamespaces(Map ns) {
@@ -75,15 +75,44 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
     }
 
     //Todo sort stream writer stuff - broken
-    void exportToBPMN (fileType) {
+    void exportToBPMN (fileType, dir=null, fileName=null) {
+
+        boolean isTest = false
+        String root = System.getProperty("user.dir")
+        URL url = this.getClass().getResource("/")
+        File loc = new File(url.toURI())
+        String canPath = loc.getCanonicalPath()
+        String stem = "$root${File.separatorChar}out${File.separatorChar}test"
+        if (canPath.contains(stem))
+            isTest = true
+
+        String resourcesPath
+        if (isTest)
+            resourcesPath = "$root${File.separatorChar}src${File.separatorChar}test${File.separatorChar}resources"
+        else
+            resourcesPath = "$root${File.separatorChar}src${File.separatorChar}main${File.separatorChar}resources"
+
+        String procDir = dir ?: "processes"
+        if (procDir.endsWith("$File.separatorChar"))
+            procDir = procDir - "$File.separatorChar"
+        String procFileName = fileName ?: "defaultBpmnProcessSpecification"
+        String completeFileName
         File exportFile
         if (fileType == "xml")
-            exportFile = new File("processes/${}.bpmn20.xml")
+            completeFileName = "$resourcesPath${File.separatorChar}$procDir${File.separatorChar}${procFileName}.bpmn20.xml"
         else if (fileType == "bpmn")
-            exportFile = new File("processes/${}.bpmn")
+            completeFileName = "$procDir${File.separatorChar}${procFileName}.bpmn"
 
-        exportFile.createNewFile()
-        exportFile.text = toString()
+        exportFile = new File(completeFileName)
+        println "path: $procDir, file:$procFileName, full: $completeFileName"
+
+        exportFile.with {
+            if (exists())
+                delete()
+            createNewFile()
+            text = toString()
+        }
+
     }
 
     //get the bpmn as 'InputStream' for consumers

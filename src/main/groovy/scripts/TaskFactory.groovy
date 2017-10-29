@@ -105,7 +105,7 @@ class ScriptTask extends Task {
     String toString() {
         //do switch on taskType
 
-        """<${type}Task id="$id" name="$name" scriptType="$format">
+        """<${type}Task id="$id" name="$name" scriptFormat="$format">
 \t$scriptBlock
 </${type}Task>
 """
@@ -141,6 +141,12 @@ enum ScriptType {
     javascript
 
     String toString () {
-        "text/x-${name()}"
+        String val =  "${name()}"
+        val
     }
+/*        if (name==groovy)
+            "groovy"
+        else
+            "text/x-${name()}"
+    }*/
 }
