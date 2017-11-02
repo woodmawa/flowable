@@ -48,7 +48,9 @@ class Gateway {
 
 enum GatewayType {
     exclusive,
-    parallel
+    parallel,
+    inclusive,
+    eventBased
 
     String toString () {
         name()

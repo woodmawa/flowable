@@ -28,6 +28,7 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
 
         registerFactory ('exclusiveGateway', new GatewayFactory())
         registerFactory ('parallelGateway', new GatewayFactory())
+        registerFactory ('inclusiveGateway', new GatewayFactory())
 
         registerFactory ('signal', new EventTriggerFactory())
         registerFactory ('message', new EventTriggerFactory())

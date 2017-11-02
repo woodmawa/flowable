@@ -150,6 +150,20 @@ class PotentialOwner {
     }
 }
 
+class HumanPerformer {
+    String expression
+
+    String toString () {
+        StringBuffer buff = new StringBuffer ()
+        buff << "<humanOwner>\n"
+        buff << "\t<resourceAssignmentExpression>\n"
+        buff << "\t\t<formalExpression>$expression</formalExpression>\n"
+        buff << "\t</resourceAssignmentExpression>\n"
+        buff << "</humanOwner\n"
+
+    }
+}
+
 class FormProperty {
     String id
     String name

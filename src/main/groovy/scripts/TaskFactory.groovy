@@ -55,8 +55,17 @@ class TaskFactory extends AbstractFactory {
                 task.scriptBlock = new Script(text: attributes.script)
                 attributes.remove('script')
             }
+            if (attributes.resultVariable) {
+                task.resultVariable = attributes.resultVariable
+                attributes.remove ('resultVariable')
+            }
+
         }
         if (task.type == TaskType.service) {
+            if (attributes.expression) {
+                task.expression  = attributes.expression
+                attributes.remove ('expression')
+            }
             if (attributes.isForCompensation) {
                 task.isForCompensation = attributes.isForCompensation
                 attributes.remove ('isForCompensation')
@@ -110,20 +119,36 @@ class Task {
 class UserTask extends Task {
     Documentation documentation
     PotentialOwner potentialOwner
+    HumanPerformer humanPerformer
     String assignee
+    String candidateUsers
+    String candidateGroups
     String formKey
     Form form
+    String dueDate //either java.util.Date (${someDatevar}), java.util.String ISO8601, or ISO8601 time-duration
 
     String toString() {
         //do switch on taskType
 
         StringBuffer buff = new StringBuffer()
         buff << """<${type}Task id="$id" name="$name" """
+        if (dueDate)
+            buff << """flowable:dueDate="$dueDate" """
         if (assignee)
-            buff << """ flowable:assignee="$assignee" """
+            buff << """flowable:assignee="$assignee" """
+        if (candidateUsers)
+            buff << """flowable:assignee="$candidateUsers" """
+        if (candidateGroups)
+            buff << """flowable:assignee="$candidateGroups" """
+        if (formKey)
+            buff << """flowable:formKey="$formKey" """
+
         buff << " >\n"
         if (documentation)
             documentation.toString().eachLine { buff << "\t$it\n"}
+        if (humanPerformer) {
+            humanPerformer.toString().eachLine {buff << "\t$it\n"}
+        }
         if (potentialOwner) {
             potentialOwner.toString().eachLine {buff << "\t$it\n"}
         }
@@ -137,10 +162,14 @@ class UserTask extends Task {
 class ScriptTask extends Task {
     ScriptType format
     Script scriptBlock
+    String resultVariable
 
     String toString() {
         StringBuffer buff = new StringBuffer()
-        buff << """<${type}Task id="$id" name="$name" scriptFormat="$format">""" << "\n"
+        buff << """<${type}Task id="$id" name="$name" scriptFormat="$format" """
+        if (resultVariable)
+            buff << """flowable:resultVariable="$resultVariable" """
+        buff <<"\n"
         scriptBlock.toString().eachLine {buff << "\t$it\n"}
         buff << "</${type}Task>"
     }
@@ -150,10 +179,14 @@ class ServiceTask extends Task {
     ScriptType format
     String serviceClassForName
     boolean isForCompensation
+    String expression
+
     String toString() {
         //do switch on taskType
         StringBuffer buff = new StringBuffer()
         buff << """<${type}Task id="$id" name="$name" """
+        if (expression)
+            buff << """flowable:expression="$expression" """
         if (isForCompensation)
             buff << """isForCompensation="$isForCompensation"  """
         buff """flowable:class="$serviceClassForName" """
