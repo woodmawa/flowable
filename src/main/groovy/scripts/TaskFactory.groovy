@@ -81,6 +81,10 @@ class TaskFactory extends AbstractFactory {
                 task.serviceClass = null  //no service defined
             }
         }
+        if (task.type == TaskType.businessRule) {
+            //todo
+        }
+
         if (task.type == TaskType.user) {
             if (attributes.potentialOwner ) {
                 task.potentialOwner = attributes.potentialOwner  //add service also
@@ -169,7 +173,7 @@ class ScriptTask extends Task {
         buff << """<${type}Task id="$id" name="$name" scriptFormat="$format" """
         if (resultVariable)
             buff << """flowable:resultVariable="$resultVariable" """
-        buff <<"\n"
+        buff <<">\n"
         scriptBlock.toString().eachLine {buff << "\t$it\n"}
         buff << "</${type}Task>"
     }
@@ -189,17 +193,30 @@ class ServiceTask extends Task {
             buff << """flowable:expression="$expression" """
         if (isForCompensation)
             buff << """isForCompensation="$isForCompensation"  """
-        buff """flowable:class="$serviceClassForName" """
+        buff << """flowable:class="$serviceClassForName" """
         buff << "/>"
     }
 }
 
+class BusinessRuleTask extends Task {
+    String ruleVariablesInput
+    String resultVariable
+    String rules
+    boolean exclude
+    String clazz
+
+    String toString () {}
+    //todo complete
+}
 
 // enumeration of available tasktypes
 enum TaskType {
     script,
     service,
-    user
+    user,
+    businessRule,
+    manual, //todo
+    receive //todo
 
     String toString () {
         name()
