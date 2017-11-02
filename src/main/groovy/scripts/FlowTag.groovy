@@ -6,6 +6,15 @@ class FlowFactory extends AbstractFactory {
         new Flow (name : value)
     }
 
+    void setParent (FactoryBuilderSupport builder, Object parent, Object childFlow ) {
+
+        if (parent instanceof Task) {
+            // running as child of task its boundary for
+            //add contained flow etc to 'overall steps in the process
+            parent.parentProcess.steps << childFlow
+        }
+    }
+
     boolean onHandleNodeAttributes (FactoryBuilderSupport builder, Object flow, Map attributes) {
         if (attributes.source && attributes.target) {
             flow.source = attributes.source
@@ -22,7 +31,7 @@ class FlowFactory extends AbstractFactory {
         true
     }
 
-    boolean isLeaf() { true}
+    boolean isLeaf() { false}
 
 }
 
@@ -31,11 +40,20 @@ class Flow {
     String name
     def source
     def target
+    ConditionExpression conditionExpression
+
     String toString() {
         StringBuffer buff = new StringBuffer()
         buff << """<sequenceFlow id="$id" """
         if (name)
             buff << """name="$name" """
-        buff << """sourceRef="$source" targetRef="$target" />"""
+        buff << """sourceRef="$source" targetRef="$target" """
+        //if with condition expression expand
+        if (conditionExpression) {
+            buff << ">\n"
+            conditionExpression.toString().eachLine {buff << "\t$it\n"}
+            buff << "</sequenceFlow>"
+        } else
+            buff << "/>"
     }
 }

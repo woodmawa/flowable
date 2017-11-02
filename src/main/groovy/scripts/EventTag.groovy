@@ -2,26 +2,31 @@ package scripts
 
 class EventFactory extends AbstractFactory {
 
-    boolean leaf = true
+    boolean leaf = false
 
     def newInstance (FactoryBuilderSupport builder, name, value, Map attributes) {
         def event
         String stemName = name - "Event"
         switch (stemName) {
-            case 'boundary' :
+            /*case 'boundary' :
                 event = new BoundaryEvent (name : value, type:stemName as EventType)
-                break
+                break*/
             default :
                 event = new Event (name : value, type:stemName as EventType)
-                if (name.startsWith ('start'))
-                    leaf = false
                 break
         }
         event
     }
 
-    void setParent (FactoryBuilderSupport builder, Object process, Object childEvent ) {
-        process.events << ["${childEvent.type}Event": childEvent]
+    void setParent (FactoryBuilderSupport builder, Object parent, Object childEvent ) {
+
+        if (parent instanceof Task) {
+            // running as child of task its boundary for
+            parent.parentProcess.eventTriggers << ["${childEvent.type}Event": childEvent]
+            //add contained boundaryEvent etc to 'overall steps in the process
+            parent.parentProcess.steps << childEvent
+        } else
+           parent.eventTriggers << ["${childEvent.type}Event": childEvent]
     }
 
     @Override
@@ -44,10 +49,6 @@ class EventFactory extends AbstractFactory {
             event.attachedToRef = attributes.attachedTo
             attributes.remove ('attachedTo')
         }
-        if (attributes.duration) {
-            event.duration = attributes.duration
-            attributes.remove('duration')
-        }
         if (attributes.cancelActivity) {
             event.cancelActivity = attributes.cancelActivity as boolean
             attributes.remove ('cancelActivity')
@@ -66,32 +67,50 @@ class Event {
     EventType type
     String id
     String name
+    String attachedToRef
+    boolean cancelActivity
     String initiator
     //optional tags if forms being used
     String formKey  //external form template definition
     Form form   //set if bpmn extensionElement form being used
+    EventDefinition eventDefinition
 
     String toString() {
         StringBuffer buff = new StringBuffer()
-        buff << """<${type}Event id="$id" name="$name" """
+        buff << """<${type}Event id="$id" """
+        if (name) {
+            buff << """name="$name" """
+        }
         if (initiator)
             buff << """flowable:initiator="$initiator" """
-        if (formKey)
-            buff << """flowable:formKey:"$formKey" />"""
-        else if (formKey == null && form) {
-            buff << ">\n"
-            form.toString().eachLine {buff << "\t" << "$it\n"}
-            buff << "</${type}Event>"
-        } else {
-            buff << "/>"
+        if (cancelActivity) {
+            buff << """cancelActivity="$cancelActivity" """
         }
+        if (attachedToRef) {
+            buff << """attachedToRef="$attachedToRef" """
+        }
+        if (formKey)
+            buff << """flowable:formKey:"$formKey" """
+        if (form || eventDefinition) {//has children
+            buff << ">\n"
+
+            if (formKey == null && form) {
+                form.toString().eachLine { buff << "\t" << "$it\n" }
+            }
+            if (eventDefinition) {
+                eventDefinition.toString().eachLine { buff << "\t" << "$it\n" }
+            }
+            buff << "</${type}Event>"
+
+        } else
+            buff << "/>"
         buff
     }
 }
 
-class BoundaryEvent extends Event {
+
+/*class BoundaryEvent extends Event {
     boolean cancelActivity
-    String attachedToRef
     String duration
 
     String toString() {
@@ -107,8 +126,11 @@ class BoundaryEvent extends Event {
         buff << "</${type}Event>"
     }
 
-}
+}*/
 
+class intermediateCatch extends Event {
+    //todo
+}
 
 enum EventType {
     start,
@@ -125,21 +147,22 @@ enum EventType {
 //takes form 'eventDefinition (name)'
 class EventDefinitionFactory extends AbstractFactory {
 
-    boolean leaf = true
+    boolean leaf = false
 
     def newInstance(FactoryBuilderSupport builder, name, value, Map attributes) {
         String stemName = name - "EventDefinition"
-        if (stemName == "timer")
-            leaf = false       //has children
         def eventDefinition
-        eventDefinition = new EventDefinition(name: name, type: stemName as EventDefinitionType, leaf: leaf)
+        if (stemName == "timer") {
+            eventDefinition = new TimerEventDefinition(name: name, definitionType: stemName as EventDefinitionType, leaf: leaf)
+        } else
+            eventDefinition = new EventDefinition(name: name, definitionType: stemName as EventDefinitionType, leaf: leaf)
 
         eventDefinition
     }
 
-    /*void setParent(FactoryBuilderSupport builder, Object event, Object childDefinitionEvent) {
-        process.events << ["name": childEvent]
-    }*/
+    void setParent(FactoryBuilderSupport builder, Object event, Object childDefinitionEvent) {
+        event.eventDefinition = childDefinitionEvent
+    }
 
     @Override
     boolean onHandleNodeAttributes (FactoryBuilderSupport builder, Object eventDefinition, Map attributes) {
@@ -149,6 +172,7 @@ class EventDefinitionFactory extends AbstractFactory {
         } else {
             eventDefinition.id = builder.getNextId("ed_")
         }
+        //store any refs on eventRef
         if (attributes.errorRef){
             eventDefinition.eventRef = attributes.errorRef
             attributes.remove('errorRef')
@@ -165,11 +189,25 @@ class EventDefinitionFactory extends AbstractFactory {
             eventDefinition.terminateAll = attributes.terminateAll
             attributes.remove('terminateAll')
         }
+        if (attributes.async) {
+            eventDefinition.async = attributes.async
+            attributes.remove('async')
+        }
 
-        /*if (attributes.cancelActivity) {
-            eventDefinition.cancelActivity = attributes.cancelActivity as boolean
-            attributes.remove ('cancelActivity')
-        }*/
+        if ( eventDefinition.definitionType == EventDefinitionType.timer) {
+            if (attributes.cycle ) {
+                eventDefinition.timeCycle = attributes.cycle
+                attributes.remove('cycle')
+            }
+            if (attributes.duration) {
+                eventDefinition.timeDuration = attributes.duration
+                attributes.remove('duration')
+            }
+            if (attributes.date) {
+                eventDefinition.timeDate = attributes.date
+                attributes.remove('date')
+            }
+        }
 
         super.onHandleNodeAttributes(builder, eventDefinition, attributes )
     }
@@ -181,28 +219,50 @@ class EventDefinition {
     String id
     String name
     String eventRef
+    boolean async
     boolean terminateAll
-    String businessCalendarName
     boolean leaf  //has nochildren
-    //TimerDefinition timerBlock
 
     String toString () {
         StringBuffer buff = new StringBuffer ()
         buff << "<${definitionType}EventDefinition "
         if (id)
             buff << """id="$id" """
-        if (eventRef)
+       if (eventRef)
             buff << "${definitionType}" << """Ref="${eventRef}" """
         if (terminateAll)
             buff << """flowable:terminateAll="$terminateAll" """
-        if (leaf)
-            buff "/>"
+        if (async)
+            buff << """flowable:async="$async" """
+        buff << "/>"
+    }
+}
 
-        /*if (timerBlock) {
-            timerBlock.toString().eachLine {buff << "\t$it\n"}
-        }*/
-        else
-            buff << ">\n</${definitionType}EventDefinition>"
+class TimerEventDefinition extends EventDefinition {
+    String businessCalendarName
+    String timeCycle
+    String timeDate
+    String timeDuration
+
+    @Override
+    String toString () {
+        StringBuffer buff = new StringBuffer ()
+        buff << "<timerEventDefinition "
+        if (id)
+            buff << """id="$id" """
+        /*if (eventRef)
+            buff << "${definitionType}" << """Ref="${eventRef}" """*/
+        if (terminateAll)
+            buff << """flowable:terminateAll="$terminateAll" """
+        buff << ">\n"
+        if (timeCycle)
+            buff << """\t<timeCycle>$timeCycle</timeCycle>""" << "\n"
+        if (timeDate)
+            buff << """\t<timeDate>$timeDate</timeDate>""" << "\n"
+        if (timeDuration)
+            buff << """\t<timeDuration>$timeDuration</timeDuration>""" << "\n"
+
+        buff << "</timerEventDefinition>"
     }
 }
 
@@ -212,7 +272,8 @@ enum EventDefinitionType {
     signal,
     error,
     terminate,
-    cancel
+    cancel,
+    compensate
 
     String toString () {
         name()
@@ -279,7 +340,7 @@ class Signal extends EventTrigger {
         StringBuffer buff = new StringBuffer()
         buff << """<signal id="$id" """
         if (name)
-            buff << """name="$name """
+            buff << """name="$name" """
         buff << "/>"
     }
 }
@@ -289,7 +350,7 @@ class Message extends EventTrigger{
         StringBuffer buff = new StringBuffer()
         buff << """<message id="$id" """
         if (name)
-            buff << """name="$name """
+            buff << """name="$name" """
         buff << "/>"
     }
 }
@@ -301,7 +362,7 @@ class Error extends EventTrigger {
         StringBuffer buff = new StringBuffer()
         buff << """<error id="$id" """
         if (name)
-            buff << """name="$name """
+            buff << """name="$name" """
         if (errorCode)
             buff << """errorCode="$errorCode" """
         buff << "/>"

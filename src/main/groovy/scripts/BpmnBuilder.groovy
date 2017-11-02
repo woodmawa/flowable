@@ -22,18 +22,30 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
         registerFactory('flow', new FlowFactory())
         registerFactory ('start', new EventFactory())
         registerFactory ('end', new EventFactory())
+        registerFactory ('intermediateCatchEvent', new EventFactory())
+        registerFactory ('intermediateThrowEvent', new EventFactory())
+        registerFactory ('boundaryEvent', new EventFactory())
+
         registerFactory ('signal', new EventTriggerFactory())
         registerFactory ('message', new EventTriggerFactory())
         registerFactory ('error', new EventTriggerFactory())
+        registerFactory ('timerEventDefinition', new EventDefinitionFactory())
+        registerFactory ('messageEventDefinition', new EventDefinitionFactory())
+        registerFactory ('errorEventDefinition', new EventDefinitionFactory())
+        registerFactory ('signalEventDefinition', new EventDefinitionFactory())
+        registerFactory ('terminateEventDefinition', new EventDefinitionFactory())
+        registerFactory ('cancelEventDefinition', new EventDefinitionFactory())
+        registerFactory ('compensateEventDefinition', new EventDefinitionFactory())
+
         registerFactory ('scriptTask', new TaskFactory())
         registerFactory ('serviceTask', new TaskFactory())
         registerFactory ('userTask', new TaskFactory())
-        registerFactory ('boundaryEvent', new EventFactory())
         registerFactory('form', new FormFactory())
         registerFactory ('potentialOwner', new CommonLeafTagFactory())
         registerFactory ('documentation', new CommonLeafTagFactory())
         registerFactory ('formProperty', new CommonLeafTagFactory())
         registerFactory ('script', new CommonLeafTagFactory())
+        registerFactory ('condition', new CommonLeafTagFactory())
 
     }
 
@@ -43,8 +55,14 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
 
     AtomicLong nextId  = new AtomicLong(0)
 
-    //if stub present just pre pend to next id
-    //not sure this is thread safe, resolve
+
+    /**
+     * if stub present just pre pend to next id
+     * todo - not sure this is thread safe, resolve
+     *
+     * @param stub
+     * @return
+     */
     String getNextId (String stub = null) {
 
         long id = nextId.incrementAndGet()
@@ -53,6 +71,18 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
         else
             "$id"
 
+    }
+
+    /**
+     * not really that used at this point
+     * @param conf - Map of configuration attributes
+     * @return this - current builder
+     */
+    BpmnProcessBuilder configure (Map conf) {
+        if (conf.name)
+            name = conf.name
+        //others as required later
+        this
     }
 
     /**
@@ -65,14 +95,18 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
     void exportToBPMN (fileType, dir=null, fileName=null) {
 
         boolean isTest = false
+
+        //get project base directory
         String root = System.getProperty("user.dir")
         URL url = this.getClass().getResource("/")
         File loc = new File(url.toURI())
         String canPath = loc.getCanonicalPath()
+        //build stem seeing if class is in <projroot>/out/test - if so your in testing
         String stem = "$root${File.separatorChar}out${File.separatorChar}test"
         if (canPath.contains(stem))
             isTest = true
 
+        //so now build the path to resources in either test or main depending on isTest flag
         String resourcesPath
         if (isTest)
             resourcesPath = "$root${File.separatorChar}src${File.separatorChar}test${File.separatorChar}resources"
@@ -145,16 +179,15 @@ BpmnProcessBuilder processBuilder = new BpmnProcessBuilder(name:"myProcessDefini
 def definition = processBuilder.definition (id:"def#1") {
     message ( "new message", id:"newMessage")
     signal ("new signal", id: "signal")
-    error ("new error", id: "error")
+    error ("new error", id: "error", errorCode: "123")
 
     process ("myProcess", id:27) {
         def st = start ('start', id:1) {
             form () {
                 formProperty ("propName", id:'frmp1', type:"string")
-
                 formProperty ("amount", id:'frmp2', type:"long")
-
             }
+            timerEventDefinition (cycle:"PT1M")
         }
         flow ('fistStep', source:st.id, target:'scr1', id:'10')
         scriptTask ('doScript', id:'scr1', scriptFormat:'groovy', script: "out:println 'hello'")
@@ -167,10 +200,20 @@ def definition = processBuilder.definition (id:"def#1") {
         }
         flow ('fistStep', source:'scr1', target:'100')
         //using 8601 std labelling for durations
-        boundaryEvent (id:'bnd#1', duration: "PT1M", attachedTo: "ut1", cancelActivity: true)
-        flow ( source:'bnd#1', target:'100')
+        boundaryEvent (id:'bnd#1',  attachedTo: "ut1", cancelActivity: true){
+            //timerEventDefinition (duration:'PT1M')
+            compensateEventDefinition ()
+        }
+        intermediateCatchEvent (id:'intCat') {
+            signalEventDefinition (signalRef:'payment')
+        }
+        flow ( source:'bnd#1', target:'100') {
+            condition ("\${order.price >100}")
+        }
 
-        def fini = end  ('terminate', id:100)
+        def fini = end  ('terminate', id:100) {
+            terminateEventDefinition (terminateAll:true)
+        }
 
     }
 }

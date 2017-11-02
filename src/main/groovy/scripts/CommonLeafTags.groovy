@@ -14,6 +14,8 @@ class CommonLeafTagFactory extends AbstractFactory {
             new PotentialOwner (expression:value)
         }else if (name == "formProperty") {
             new FormProperty (name:value)
+        } else if (name == "condition") {
+            new ConditionExpression (condition:value)
         }
         else {
             throw  UnsupportedDataTypeException.newInstance("tage name $name is not supported")
@@ -32,6 +34,8 @@ class CommonLeafTagFactory extends AbstractFactory {
             parent.potentialOwner = child
         } else if (child instanceof FormProperty) {
             parent.formProperties << child
+        } else if (child instanceof ConditionExpression){
+            parent.conditionExpression = child
         }
     }
 
@@ -85,6 +89,18 @@ class CommonLeafTagFactory extends AbstractFactory {
 
     boolean isLeaf() { true}
 
+}
+
+class ConditionExpression {
+    //only UEL expression language recognised right now - https://docs.oracle.com/cd/E19226-01/820-7627/gjddd/
+    String condition
+
+    String toString () {
+        """<conditionExpression xsi:type="tFormalExpression">
+\t<![CDATA[$condition]]>
+</conditionExpression>
+"""
+    }
 }
 
 class Documentation {

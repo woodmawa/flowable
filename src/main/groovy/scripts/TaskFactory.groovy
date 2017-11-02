@@ -21,6 +21,21 @@ class TaskFactory extends AbstractFactory {
         task
     }
 
+    void setParent (FactoryBuilderSupport builder, Object parent, Object task ) {
+        if (parent instanceof Process) {
+            //parent.steps << task done in the parent for all its children
+            //keep reference to process for each task here
+            task.parentProcess = parent
+        }
+        if (parent instanceof Task) {
+            // running child of task within another task            //add contained sub task  etc to 'overall steps in the process
+            parent.parentProcess.steps << task
+            task.parentProcess = parent.parentProcess   //task and subtask set with  same parentProcess
+        }
+
+    }
+
+
     @Override
     boolean onHandleNodeAttributes (FactoryBuilderSupport builder, Object task, Map attributes) {
         if (attributes.id) {
@@ -42,6 +57,10 @@ class TaskFactory extends AbstractFactory {
             }
         }
         if (task.type == TaskType.service) {
+            if (attributes.isForCompensation) {
+                task.isForCompensation = attributes.isForCompensation
+                attributes.remove ('isForCompensation')
+            }
             if (attributes.class || attributes.service) {
                 def clazzName = attributes.'class'
                 //if passed Class definition - take the full name of the Class
@@ -79,6 +98,8 @@ class Task {
     TaskType type
     String id
     String name
+    Process ParentProcess
+
     String toString() {
         //do switch on taskTYpe
 
@@ -128,10 +149,15 @@ class ScriptTask extends Task {
 class ServiceTask extends Task {
     ScriptType format
     String serviceClassForName
+    boolean isForCompensation
     String toString() {
         //do switch on taskType
-
-        """<${type}Task id="$id" name="$name" flowable:class="$serviceClassForName" />"""
+        StringBuffer buff = new StringBuffer()
+        buff << """<${type}Task id="$id" name="$name" """
+        if (isForCompensation)
+            buff << """isForCompensation="$isForCompensation"  """
+        buff """flowable:class="$serviceClassForName" """
+        buff << "/>"
     }
 }
 
