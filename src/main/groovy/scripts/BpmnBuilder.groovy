@@ -14,15 +14,21 @@ import javax.xml.transform.stream.StreamSource
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicLong
 
+
 class BpmnProcessBuilder extends FactoryBuilderSupport {
     {
+        registerFactory ('definition', new DefinitionFactory())
         registerFactory('process', new ProcessFactory())
         registerFactory('flow', new FlowFactory())
         registerFactory ('start', new EventFactory())
         registerFactory ('end', new EventFactory())
+        registerFactory ('signal', new EventTriggerFactory())
+        registerFactory ('message', new EventTriggerFactory())
+        registerFactory ('error', new EventTriggerFactory())
         registerFactory ('scriptTask', new TaskFactory())
         registerFactory ('serviceTask', new TaskFactory())
         registerFactory ('userTask', new TaskFactory())
+        registerFactory ('boundaryEvent', new EventFactory())
         registerFactory('form', new FormFactory())
         registerFactory ('potentialOwner', new CommonLeafTagFactory())
         registerFactory ('documentation', new CommonLeafTagFactory())
@@ -31,28 +37,11 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
 
     }
 
-    AtomicLong nextId = new AtomicLong(0)
+    String name = "hardcoded definition name"
 
-    String defaultSpecVersion = "20100524"
-    String targetNamespace = "com.softwood"
-    Map namespaces = [flowable: "http://flowable.org/bpmn",
-                        bpmndi: "http://www.omg.org/spec/BPMN/$defaultSpecVersion/DI",
-                        dc    : "http://www.omg.org/spec/DD/$defaultSpecVersion/DC",
-                        di    : "http://www.omg.org/spec/BPMN/$defaultSpecVersion/DI",
-                        xsd   : "http://www.w3.org/2001/XMLSchema",
-                        xsi   : "http://www.w3.org/2001/XMLSchema-instance"]
-    String defaultTypeLanguage = "http://www.w3.org/2001/XMLSchema"
-    String defaultNamespace = "http://www.omg.org/spec/BPMN/$defaultSpecVersion/MODEL"
-    String schemaLocation = "http://www.omg.org/spec/BPMN/20100524/MODEL"
+    Definition definition
 
-    def declareNamespaces(Map ns) {
-        namespaces << ns
-    }
-
-    String id = getNextId("def_")
-    String name = "hardcodedname"
-
-    Process process
+    AtomicLong nextId  = new AtomicLong(0)
 
     //if stub present just pre pend to next id
     //not sure this is thread safe, resolve
@@ -63,18 +52,16 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
             "$stub$id"
         else
             "$id"
+
     }
 
-    int indentLevel = 1
-    String indent(indentLevel) {
-        StringBuffer indent = new StringBuffer()
-        indentLevel.times {
-            indent << "\t"
-        }
-        indent.toString()
-    }
-
-    //Todo sort stream writer stuff - broken
+    /**
+     * export definition as BPMN xml to filestore
+     *
+     * @param fileType (xml or bpmn)
+     * @param directory (relative 'resources' package
+     * @param fileName (name for file less file extension)
+     */
     void exportToBPMN (fileType, dir=null, fileName=null) {
 
         boolean isTest = false
@@ -115,45 +102,22 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
 
     }
 
-    //get the bpmn as 'InputStream' for consumers
+    /**
+     *     get the bpmn as 'InputStream' for consumers
+     *     @Return InputStream - bpmn definition as input stream
+     */
     InputStream exportAsInputStream () {
         String xml = this.toString()
         new ByteArrayInputStream(xml.getBytes("UTF-8"))
     }
 
+
     String toString() {
-        StringBuffer nsList = new StringBuffer()
-        nsList <<  "\t" << /targetNamespace="$targetNamespace"/ << "\n"
-        nsList << "\t" << /xmlns="$defaultNamespace"/ << "\n"
-        namespaces.each {k,v -> nsList << "\t" << /xmlns:$k="$v"/ << "\n"}
-        nsList << "\t" << /typeLanguage="$defaultTypeLanguage"/
+        StringBuffer buff = new StringBuffer()
+        String xmlDeclaration = """<?xml version="1.0" encoding="UTF-8"?>""" << "\n"
 
-        String xmlDeclaration = """<?xml version="1.0" encoding="UTF-8"?>"""
-
-        def structureAndMessages =  """
-<!--    Structures and Messages -->
-<import importType="http://www.w3.org/2001/XMLSchema" 	location="DataDefinitions.xsd" 	namespace="http://www.example.org/Messages"/>
-<import importType="http://schemas.xmlsoap.org/wsdl/" 	location="Interfaces.wsdl" 	namespace="http://www.example.org/Messages"/>
-"""
-
-        String processDefinition = """
-<!-- process definition -->
-$process
-"""
-
-        /**
-         * build the output bpmn definition xml as string
-         */
-
-        StringBuffer xmlString = new StringBuffer()
-        xmlString << "$xmlDeclaration " << "\n"
-        xmlString << """<definitions name="$name" id="$id" """ << "\n"
-        xmlString << "$nsList>" << "\n\n"
-        structureAndMessages.eachLine { xmlString << "\t$it\n"}
-        processDefinition.eachLine {xmlString << "\t$it\n"}
-        //xmlString << "$processDefinition" << "\n"
-        xmlString << "</definitions>" << "\n"
-
+        buff << xmlDeclaration
+        buff << definition.toString()
 
         //nearly does whats requireed
         /*def root = new XmlParser().parseText(xmlString)
@@ -177,22 +141,39 @@ $process
 
 
 BpmnProcessBuilder processBuilder = new BpmnProcessBuilder(name:"myProcessDefinition")
-def proc = processBuilder.process ("myProcess", id:27) {
-    def st = start ('start', id:1) {
-        form ('') {
-            formProperty ("propName", id:'frm1', type:"string")
+
+def definition = processBuilder.definition (id:"def#1") {
+    message ( "new message", id:"newMessage")
+    signal ("new signal", id: "signal")
+    error ("new error", id: "error")
+
+    process ("myProcess", id:27) {
+        def st = start ('start', id:1) {
+            form () {
+                formProperty ("propName", id:'frmp1', type:"string")
+
+                formProperty ("amount", id:'frmp2', type:"long")
+
+            }
         }
-    }
-    flow ('fistStep', source:st.id, target:'scr1', id:'10')
-    scriptTask ('doScript', id:'scr1', scriptFormat:'groovy', script: "out:println 'hello'")
-    userTask ('openDoor', id:'ut1'){
-        documentation ("some notes")
-        potentialOwner ("will")
-    }
-    flow ('fistStep', source:'scr1', target:'100')
+        flow ('fistStep', source:st.id, target:'scr1', id:'10')
+        scriptTask ('doScript', id:'scr1', scriptFormat:'groovy', script: "out:println 'hello'")
+        userTask ('openDoor', id:'ut1', assignee: "fozzie"){
+            documentation ("some notes")
+            potentialOwner ("will")
+            form () {
+                formProperty ("Customer", id:'cust', required:true, type: 'string')
+            }
+        }
+        flow ('fistStep', source:'scr1', target:'100')
+        //using 8601 std labelling for durations
+        boundaryEvent (id:'bnd#1', duration: "PT1M", attachedTo: "ut1", cancelActivity: true)
+        flow ( source:'bnd#1', target:'100')
 
-    def fini = end  ('terminate', id:100)
+        def fini = end  ('terminate', id:100)
 
+    }
 }
+
 
 println processBuilder.exportAsInputStream().text  //toString()

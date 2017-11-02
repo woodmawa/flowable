@@ -32,6 +32,10 @@ class Flow {
     def source
     def target
     String toString() {
-        """<sequenceFlow id="$id" name="$name" sourceRef="$source" targetRef="$target" />"""
+        StringBuffer buff = new StringBuffer()
+        buff << """<sequenceFlow id="$id" """
+        if (name)
+            buff << """name="$name" """
+        buff << """sourceRef="$source" targetRef="$target" />"""
     }
 }

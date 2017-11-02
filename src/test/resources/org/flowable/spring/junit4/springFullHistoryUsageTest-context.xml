@@ -28,7 +28,7 @@
 
     <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
         <property name="dataSource" ref="dataSource"/>
-        <!-- <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
+        <!-- required load time weaving : <property name="persistenceXmlLocation" value="classpath:META-INF/persistence.xml"/>
         <property name="jpaVendorAdapter">
             <bean class="org.springframework.orm.jpa.vendor.OpenJpaVendorAdapter">
                 <property name="databasePlatform" value="org.apache.openjpa.jdbc.sql.H2Dictionary"/>
@@ -66,7 +66,7 @@
         <property name="jpaCloseEntityManager" value="true" />
 
         <!-- job executor configurations -->
-        <property name="asyncExecutorActivate" value="false" />
+        <property name="asyncExecutorActivate" value="true" />
 
 
     </bean>

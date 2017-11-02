@@ -21,6 +21,7 @@ class TaskFactory extends AbstractFactory {
         task
     }
 
+    @Override
     boolean onHandleNodeAttributes (FactoryBuilderSupport builder, Object task, Map attributes) {
         if (attributes.id) {
             task.id = attributes.id
@@ -42,7 +43,11 @@ class TaskFactory extends AbstractFactory {
         }
         if (task.type == TaskType.service) {
             if (attributes.class || attributes.service) {
-                task.serviceClass = attributes.class  //add service also
+                def clazzName = attributes.'class'
+                //if passed Class definition - take the full name of the Class
+                if (clazzName instanceof Class)
+                    clazzName = clazzName.name
+                task.serviceClassForName = clazzName  //add service also
                 attributes.remove('class')
             } else {
                 task.serviceClass = null  //no service defined
@@ -56,8 +61,8 @@ class TaskFactory extends AbstractFactory {
                 task.potentialOwner = null  //no potentialOwner set
             }
         }
-
-        true
+        //let parent handle now
+        super.onHandleNodeAttributes(builder, task, attributes)
     }
 
     boolean isLeaf() {
@@ -84,16 +89,25 @@ class Task {
 class UserTask extends Task {
     Documentation documentation
     PotentialOwner potentialOwner
+    String assignee
+    String formKey
+    Form form
 
     String toString() {
         //do switch on taskType
 
         StringBuffer buff = new StringBuffer()
-        buff << """<${type}Task id="$id" name="$name" >""" << "\n"
+        buff << """<${type}Task id="$id" name="$name" """
+        if (assignee)
+            buff << """ flowable:assignee="$assignee" """
+        buff << " >\n"
         if (documentation)
-            buff << "\t$documentation"
+            documentation.toString().eachLine { buff << "\t$it\n"}
         if (potentialOwner) {
             potentialOwner.toString().eachLine {buff << "\t$it\n"}
+        }
+        if (form){
+            form.toString().eachLine {buff << "\t$it\n"}
         }
         buff << "</${type}Task>\n"
     }
@@ -102,27 +116,25 @@ class UserTask extends Task {
 class ScriptTask extends Task {
     ScriptType format
     Script scriptBlock
-    String toString() {
-        //do switch on taskType
 
-        """<${type}Task id="$id" name="$name" scriptFormat="$format">
-\t$scriptBlock
-</${type}Task>
-"""
+    String toString() {
+        StringBuffer buff = new StringBuffer()
+        buff << """<${type}Task id="$id" name="$name" scriptFormat="$format">""" << "\n"
+        scriptBlock.toString().eachLine {buff << "\t$it\n"}
+        buff << "</${type}Task>"
     }
 }
 
 class ServiceTask extends Task {
     ScriptType format
-    Class serviceClass
+    String serviceClassForName
     String toString() {
         //do switch on taskType
 
-        """<${type}Task id="$id" name="$name" flowable:class="$serviceClass">
-</${type}Task>
-"""
+        """<${type}Task id="$id" name="$name" flowable:class="$serviceClassForName" />"""
     }
 }
+
 
 // enumeration of available tasktypes
 enum TaskType {

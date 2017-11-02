@@ -44,7 +44,17 @@ class CommonLeafTagFactory extends AbstractFactory {
             } else
                 node.id = builder.getNextId ("fp_")
             if (attributes.type) {
-                node.'type' = attributes.type
+                // types supported, string,boolean,long,date,enum all lowercase string
+                // enum will need extra processing
+                def formPropType
+                if (attributes.type instanceof String) {
+                    formPropType = attributes.type.toLowerCase()
+                } else if (attributes.type instanceof Class){
+                    def clazz = attributes.type
+                    formPropType = clazz.simpleName.toLowerCase()  //store simple name of type
+                }
+
+                node.type = formPropType  //todo mend this better
                 attributes.remove ('type')
             }
             if (attributes.variable) {
@@ -82,7 +92,7 @@ class Documentation {
 
     String toString () {
         """<documentation>
-$text
+\t$text
 </documentation>
 """
     }
@@ -93,7 +103,7 @@ class Description {
 
     String toString () {
         """<description>
-$text
+\t$text
 </description>
 """
     }
@@ -103,9 +113,10 @@ class Script {
     String text
 
     String toString () {
-        """<script>
-$text
-</script>"""
+        StringBuffer buff = new StringBuffer ()
+        buff << "<script>\n"
+        text.eachLine {buff << "\t$it\n"}
+        buff << "</script>"
     }
 }
 

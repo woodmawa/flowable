@@ -3,8 +3,6 @@ package scripts
 class ProcessFactory extends AbstractFactory {
     def newInstance (FactoryBuilderSupport builder, name, value, Map attributes) {
         def process = new Process (name: value)
-        if (!builder.process)
-            builder.process = process
         process
     }
 
@@ -17,7 +15,6 @@ class ProcessFactory extends AbstractFactory {
         if (child instanceof Event && child.type == EventType.end) {
             targetEventId = child.id
         }
-
         process.steps << child
     }
 
@@ -28,7 +25,7 @@ class ProcessFactory extends AbstractFactory {
         } else {
             process.id = (builder as BpmnProcessBuilder).getNextId("p_")
         }
-        true
+        super.onHandleNodeAttributes(builder, process, attributes )
     }
 
 }
@@ -39,8 +36,9 @@ class Process {
     String description
     boolean isExecutable = true //default state for process
     boolean isClosed = false
-    def steps = []
+    def steps = []      //list of all top level steps through process
     def events = [:]
+    def eventTriggers = [:]
 
     String toString () {
         StringBuffer buff = new StringBuffer()
