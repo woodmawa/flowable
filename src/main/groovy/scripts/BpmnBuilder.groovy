@@ -26,6 +26,9 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
         registerFactory ('intermediateThrowEvent', new EventFactory())
         registerFactory ('boundaryEvent', new EventFactory())
 
+        registerFactory ('exclusiveGateway', new GatewayFactory())
+        registerFactory ('parallelGateway', new GatewayFactory())
+
         registerFactory ('signal', new EventTriggerFactory())
         registerFactory ('message', new EventTriggerFactory())
         registerFactory ('error', new EventTriggerFactory())
@@ -40,7 +43,7 @@ class BpmnProcessBuilder extends FactoryBuilderSupport {
         registerFactory ('scriptTask', new TaskFactory())
         registerFactory ('serviceTask', new TaskFactory())
         registerFactory ('userTask', new TaskFactory())
-        registerFactory('form', new FormFactory())
+        registerFactory ('form', new FormFactory())
         registerFactory ('potentialOwner', new CommonLeafTagFactory())
         registerFactory ('documentation', new CommonLeafTagFactory())
         registerFactory ('formProperty', new CommonLeafTagFactory())
@@ -206,6 +209,14 @@ def definition = processBuilder.definition (id:"def#1") {
         }
         intermediateCatchEvent (id:'intCat') {
             signalEventDefinition (signalRef:'payment')
+        }
+        parallelGateway ("mygateway", id:'gw1', default:'gw-flow-2')
+        flow (id:'gw-flow-1', source: 'gw1', target: 'end') {
+            condition ("\${a>10}")
+        }
+        flow (id:'gw-flow-2', source:'gw1', target:'end')
+        flow (id:'gw-flow-3', source:'gw1', target:'end') {
+            condition ("\${a>30}")
         }
         flow ( source:'bnd#1', target:'100') {
             condition ("\${order.price >100}")
